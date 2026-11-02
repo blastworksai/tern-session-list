@@ -1,0 +1,205 @@
+/* Session list. Tern draws the list itself (native `tool` card + `checklist`
+   nodes: icons, ring, strike-through, colours from the active theme), so this
+   sheet only styles what Tern does not: the orphans' two buttons and the
+   selected row (keys move it; checklist rows take no clicks). Theme tokens only.
+   Selection: vista puts data-role="sl.lista.sel.<n>" on the card; row n is
+   painted while the block has focus. Lists longer than 60 rows still work by
+   keys, the highlight just stops past row 60. */
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.1"] .sf-ck-item:nth-child(1),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.2"] .sf-ck-item:nth-child(2),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.3"] .sf-ck-item:nth-child(3),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.4"] .sf-ck-item:nth-child(4),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.5"] .sf-ck-item:nth-child(5),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.6"] .sf-ck-item:nth-child(6),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.7"] .sf-ck-item:nth-child(7),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.8"] .sf-ck-item:nth-child(8),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.9"] .sf-ck-item:nth-child(9),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.10"] .sf-ck-item:nth-child(10),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.11"] .sf-ck-item:nth-child(11),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.12"] .sf-ck-item:nth-child(12),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.13"] .sf-ck-item:nth-child(13),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.14"] .sf-ck-item:nth-child(14),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.15"] .sf-ck-item:nth-child(15),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.16"] .sf-ck-item:nth-child(16),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.17"] .sf-ck-item:nth-child(17),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.18"] .sf-ck-item:nth-child(18),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.19"] .sf-ck-item:nth-child(19),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.20"] .sf-ck-item:nth-child(20),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.21"] .sf-ck-item:nth-child(21),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.22"] .sf-ck-item:nth-child(22),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.23"] .sf-ck-item:nth-child(23),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.24"] .sf-ck-item:nth-child(24),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.25"] .sf-ck-item:nth-child(25),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.26"] .sf-ck-item:nth-child(26),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.27"] .sf-ck-item:nth-child(27),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.28"] .sf-ck-item:nth-child(28),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.29"] .sf-ck-item:nth-child(29),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.30"] .sf-ck-item:nth-child(30),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.31"] .sf-ck-item:nth-child(31),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.32"] .sf-ck-item:nth-child(32),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.33"] .sf-ck-item:nth-child(33),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.34"] .sf-ck-item:nth-child(34),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.35"] .sf-ck-item:nth-child(35),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.36"] .sf-ck-item:nth-child(36),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.37"] .sf-ck-item:nth-child(37),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.38"] .sf-ck-item:nth-child(38),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.39"] .sf-ck-item:nth-child(39),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.40"] .sf-ck-item:nth-child(40),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.41"] .sf-ck-item:nth-child(41),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.42"] .sf-ck-item:nth-child(42),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.43"] .sf-ck-item:nth-child(43),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.44"] .sf-ck-item:nth-child(44),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.45"] .sf-ck-item:nth-child(45),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.46"] .sf-ck-item:nth-child(46),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.47"] .sf-ck-item:nth-child(47),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.48"] .sf-ck-item:nth-child(48),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.49"] .sf-ck-item:nth-child(49),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.50"] .sf-ck-item:nth-child(50),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.51"] .sf-ck-item:nth-child(51),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.52"] .sf-ck-item:nth-child(52),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.53"] .sf-ck-item:nth-child(53),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.54"] .sf-ck-item:nth-child(54),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.55"] .sf-ck-item:nth-child(55),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.56"] .sf-ck-item:nth-child(56),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.57"] .sf-ck-item:nth-child(57),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.58"] .sf-ck-item:nth-child(58),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.59"] .sf-ck-item:nth-child(59),
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]):not(.sf-unfocused) [data-role="sl.lista.sel.60"] .sf-ck-item:nth-child(60) {
+  margin: 0 -4px;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: rgb(from var(--accent) r g b/12%);
+}
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-botao {
+  font: 550 12.5px/1 var(--sans);
+  color: var(--t2);
+  background: transparent;
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--l3);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-botao:hover {
+  color: var(--t1);
+  background: var(--sf-shade);
+}
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-botao:focus-visible {
+  box-shadow: 0 0 0 2px rgb(from var(--accent) r g b/45%);
+}
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-continuar {
+  color: var(--t1);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* The "part done" ring (vista: estado.brilho; host: lib/brilho.luau, 2.4 s).
+   Tern's own rainbow "working" glow (`.tn-pane.working .tn-glow`), copied
+   from Tern 0.9.8's sheet: the same structure, the same --tn-glow-stops
+   (accent -> live, oklch increasing hue), the same perimeter-gradient
+   offset sweep 0 -> 1 in 50 ms steps, bloom blur 10px saturate 180%. Played
+   once: one full turn in 2.4 s (Tern's runs 5.6 s and loops) under a fade in
+   (0.45 s, Tern's) and out (0.3 s, Tern's). A plugin block cannot raise
+   Tern's own (measured), and the block's regions are clipped to the terminal
+   padding, so the ring runs just inside the pane edge instead of on it. */
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-brilho {
+  --sl-glow-stops:
+    var(--accent) 0%, color-mix(in oklch increasing hue, var(--accent) 60%, var(--live)) 16%,
+    color-mix(in oklch increasing hue, var(--accent) 25%, var(--live)) 32%, var(--live) 44%,
+    color-mix(in oklch increasing hue, var(--accent), var(--live)) 62%,
+    rgb(from var(--accent) r g b/45%) 82%, var(--accent) 100%;
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  border-radius: 8px;
+  overflow: hidden;
+  animation: slGlowFade 2.4s linear forwards;
+}
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-brilho-bloom {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  filter: blur(10px) saturate(180%);
+  opacity: 0.4;
+}
+
+[data-theme='dark'] :is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-brilho-bloom {
+  opacity: 0.65;
+}
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) :is(.sl-brilho-ring, .sl-brilho-band) {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: perimeter-gradient(12px, 0, var(--sl-glow-stops));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: slGlowTurn 2.4s steps(48) forwards;
+}
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-brilho-ring {
+  padding: 1.5px;
+}
+
+:is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-brilho-band {
+  padding: 7px;
+}
+
+@keyframes slGlowTurn {
+  to {
+    background-image: perimeter-gradient(12px, 1, var(--sl-glow-stops));
+  }
+}
+
+@keyframes slGlowFade {
+  0% {
+    opacity: 0;
+  }
+  19% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) :is(.sl-brilho-ring, .sl-brilho-band) {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-brilho-bloom {
+    display: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-brilho-bloom {
+    display: none;
+  }
+  :is([data-surface="plugin.session-list.list"], [data-surface="plugin.session-list-test.list"]) .sl-brilho-ring {
+    padding: 2px;
+  }
+}

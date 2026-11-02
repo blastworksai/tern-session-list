@@ -1,0 +1,13 @@
+schema = 1
+id = "session-list"
+name = "Session list"
+version = "0.1.0"
+host = "host.luau"
+window = "window.luau"
+styles = ["styles.css"]
+
+[[blocks]]
+id = "list"
+title = "Session list"
+icon = "list"
+palette = false
