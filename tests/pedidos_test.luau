@@ -453,43 +453,51 @@ teste("check: stopinput with newlines escaped between tokens still decodes", fun
 end)
 
 -- start ---------------------------------------------------------------------
+-- The rule comes first, so an agent wired only through the SessionStart hook
+-- learns it without anyone editing its instructions file; then a blank line
+-- and the start context (orphan questions, the open list), when there is one.
 
-teste("start: nothing → empty text", function()
+local function comRegra(t, ctx: string): string
+	return t.regra .. "\n\n" .. ctx
+end
+
+teste("start: nothing → the rule alone, no trailing blank line", function()
 	local N = ambiente()
 	local r = roda(N, req(5, "start"))
 	eq(r.status, "ok")
-	eq(r.texto, "")
+	eq(r.texto, EN.regra)
+	eq(roda(N, req(5, "start"), PT).texto, PT.regra)
 end)
 
-teste("start: the open list only", function()
+teste("start: the rule, then the open list", function()
 	local N = ambiente()
 	roda(N, req(5, "add", { "a", "b" }))
 	roda(N, req(5, "done", { "i2" }))
 	local r = roda(N, req(5, "start"))
-	eq(r.texto, EN.abertoNestaAba("This tab's session list\n☐ i1 a\n☑ i2 b (done)"))
+	eq(r.texto, comRegra(EN, EN.abertoNestaAba("This tab's session list\n☐ i1 a\n☑ i2 b (done)")))
 end)
 
-teste("start: a finished list is cleared and gives nothing", function()
+teste("start: a finished list is cleared and gives the rule alone", function()
 	local N = ambiente()
 	roda(N, req(5, "add", { "a" }))
 	roda(N, req(5, "done", { "i1" }))
-	eq(roda(N, req(5, "start")).texto, "")
+	eq(roda(N, req(5, "start")).texto, EN.regra)
 	eq(N.daPane(5), nil)
 end)
 
-teste("start: orphan questions first, then the list; noorphans drops them", function()
+teste("start: the rule, then orphan questions, then the list; noorphans drops them", function()
 	local N = ambiente()
 	local id = deixaOrfa(N)
 	roda(N, req(5, "add", { "mine" }))
 	local r = roda(N, req(5, "start"))
 	local pergunta = EN.orfaParaModelo({ id = id, itens = { "left 1", "left 2" } })
-	eq(r.texto, pergunta .. "\n\n" .. EN.abertoNestaAba("This tab's session list\n☐ i1 mine"))
+	eq(r.texto, comRegra(EN, pergunta .. "\n\n" .. EN.abertoNestaAba("This tab's session list\n☐ i1 mine")))
 	r = roda(N, req(5, "start", nil, { noorphans = "1" }))
-	eq(r.texto, EN.abertoNestaAba("This tab's session list\n☐ i1 mine"))
+	eq(r.texto, comRegra(EN, EN.abertoNestaAba("This tab's session list\n☐ i1 mine")))
 	semConter(r.texto, id)
 	r = roda(N, req(7, "start"))
-	eq(r.texto, pergunta)
-	eq(roda(N, req(7, "start", nil, { noorphans = "1" })).texto, "")
+	eq(r.texto, comRegra(EN, pergunta))
+	eq(roda(N, req(7, "start", nil, { noorphans = "1" })).texto, EN.regra)
 end)
 
 -- languages -----------------------------------------------------------------

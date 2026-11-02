@@ -11,7 +11,7 @@
 --     N = nucleo.novo(...), t = textos.textos(idioma),
 --     opts = { maxLembretes = number?, json = {decode} }
 --   pedidos.renderLista(lista, orfas, t, ilegiveis?) -> string
---   pedidos.contextoInicial(lista, orfas, t)         -> string ("" when nothing)
+--   pedidos.contextoInicial(lista, orfas, t)         -> string ("" when nothing; `start` prints t.regra before it)
 --   pedidos.respostaArquivo(res)                     -> "status=<s>\n<texto>"
 
 local nucleo = require("./nucleo")
@@ -211,7 +211,9 @@ function pedidos.executa(p, N, t, opts)
 	if p.verb == "start" then
 		local ini = N.inicio(pane)
 		local orfas = if p.noorphans then {} else ini.orfas
-		return { status = "ok", texto = pedidos.contextoInicial(ini.lista, orfas, t) }
+		-- the rule first: an agent wired only through the SessionStart hook learns it here
+		local ctx = pedidos.contextoInicial(ini.lista, orfas, t)
+		return { status = "ok", texto = if ctx == "" then t.regra else t.regra .. "\n\n" .. ctx }
 	end
 
 	local avisos, status = {}, "ok"

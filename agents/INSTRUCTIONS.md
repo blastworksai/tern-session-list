@@ -6,6 +6,8 @@ The commands below assume `session-list` is on your `PATH` (see the README's ins
 
 ## 1. The rule (paste into AGENTS.md or CLAUDE.md)
 
+The SessionStart hook below already teaches this rule (`session-list start` prints it first); the paragraph in AGENTS.md or CLAUDE.md is for agents without hooks.
+
 English:
 
 ```
@@ -49,7 +51,7 @@ Add to `.claude/settings.json` (the project's) or `~/.claude/settings.json` (eve
 }
 ```
 
-- **SessionStart** prints this tab's list, and any list a closed tab left, into the agent's context when a session starts, resumes, clears or compacts.
+- **SessionStart** prints the rule, then this tab's list, and any list a closed tab left, into the agent's context when a session starts, resumes, clears or compacts.
 - **Stop** reminds the agent of open items when it is about to stop: the command exits 2 with the reminder on stderr, which Claude Code feeds back so the agent carries on.
   The reminder fires at most `max_lembretes` times (default 1) until the list changes, never when the agent's last reply ends with a question, and never on a turn the Stop hook already continued (`stop_hook_active`), so it cannot loop.
   Blocked items do not count as open; the item in progress does.

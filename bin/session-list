@@ -21,7 +21,7 @@ AJUDA='session-list: this Tern tab'"'"'s session list (the parts of the work agr
   session-list show                 show this tab'"'"'s list and lists closed tabs left
   session-list adopt <listId>       take over a list a closed tab left
   session-list discard <listId>     discard a list a closed tab left
-  session-list start                session-start hook: the list and orphan questions
+  session-list start                session-start hook: the rule, the list and orphan questions
   session-list check                stop hook: reminds of open items
       --hook                        read the hook'"'"'s JSON on stdin, exit 2 to remind
   session-list help                 this screen

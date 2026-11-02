@@ -36,7 +36,8 @@ The rule, in one paragraph:
 Session list: when you and the person agree on a piece of work in parts, note the parts right away with `session-list add "part 1" "part 2"`, not at the end. Mark the part you are working on with `session-list doing <id>`, and tick each part with `session-list done <id>` as soon as it is done; if a part waits on someone, `session-list block <id> <reason>`. The person can also ask "add this to the session list". This list is NOT the person's task list: never copy their tasks here, and never move items to another task list unless they ask.
 ```
 
-The hooks add two things: the list (and any list a closed tab left) is put in front of the agent when a session starts, and the agent is reminded of open parts when it is about to stop.
+The hooks add two things: the rule and the list (and any list a closed tab left) are put in front of the agent when a session starts, and the agent is reminded of open parts when it is about to stop.
+The SessionStart hook already teaches the rule; the paragraph in `AGENTS.md` is for agents without hooks.
 
 ## The panel
 
@@ -76,7 +77,7 @@ session-list unblock <id>         back to open
 session-list show                 show this tab's list and lists closed tabs left
 session-list adopt <listId>       take over a list a closed tab left
 session-list discard <listId>     discard a list a closed tab left
-session-list start                session-start hook: the list and orphan questions
+session-list start                session-start hook: the rule, the list and orphan questions
 session-list check                stop hook: reminds of open items
     --hook                        read the hook's JSON on stdin, exit 2 to remind
 session-list help                 this screen
