@@ -1,62 +1,64 @@
-# Estate session view for Tern
+# Interactive plan for Tern
 
-A native checklist beside a Tern pane, reading that pane's explicitly assigned PLAN or FORGE tickets. This is the Blastworks estate fork of [Felipe Carneiro's session-list](https://github.com/felipevdc1/tern-session-list), MIT, based on `f5920de0cc1018fa9814e5f0c6cca83a7ddf34dc`. Estate adaptation: CodexBWAI, COMMANDER-993.
+English-first checkpoint visibility for the interactive `$glitch-plan` → execution workflow. The canonical plan contains explicit agreed checkpoints, their current state and a blocked reason. The panel is a read-only native Tern checklist.
 
-**Development preview. Not installed on estate seats. Independent review and live remote/Windows qualification remain release gates.**
+This is the Blastworks fork of [Felipe Carneiro's session-list](https://github.com/felipevdc1/tern-session-list), MIT. Interactive adaptation: CodexBWAI, COMMANDER-993. **Preview: not deployed; cross-family review and real-client qualification remain gates.**
 
-## Behaviour
+## Scope
 
-- One explicit WORK-ID and canonical source per pane. Different work requires a fresh pane.
-- PLAN/FORGE remain authoritative. No checklist edits, ticket transitions, work adoption, dispatch, provider calls or automatic agent continuation.
-- Every Unix seat has its own plugin, daemon and private data. No shared writable cross-user directory or central agent-prompt relay.
-- The command reads the source and atomically publishes a snapshot. Source failures replace old success with a visible error. The panel shows when it last read the source; it does not imply continuous live synchronization.
-- A fresh epoch per plugin load and pane spawn prevents recycled pane numbers from inheriting work. After plugin reload/restart, open a fresh pane and explicitly bind the same authorized work. Existing approvals remain in the canonical record.
-- No orphaned work is offered or injected into another agent's context. Snapshot text is source data, never an instruction or assignment.
+Interactive sessions only. Fleet/BWPM/FORGE execution is outside the view. The writer/executor updates the one canonical plan; the plugin displays its explicit checkpoint block. It never interprets dated prose as task completion, writes the plan, sends an agent prompt, adopts another task or grants release/deployment authority.
 
-AGP and OMP are outside this integration. The helper runs on the estate's **Linux native Tern host**, regardless of the CLI family inside the pane. A Windows/macOS Tern frontend need not run Python, but its remote panel path still needs qualification. Shells multiplexed inside Herdr or plain SSH without their own native `TERN_PANE` are refused; never invent or forward a pane number to make them pass.
+The panel binds to an explicitly selected source and stable `plan_id`. It does **not** follow another terminal's number. Restoring a view preserves that same source/id; replacing a file with a different plan is refused. A failed read clears previous success and shows an error.
 
-## Requirements
+## Planning integration
 
-Existing Tern with Luau plugins, Python 3.10+ standard library, Linux (`fcntl`, `O_NOFOLLOW`, GNU `readlink`), and the deployed `/usr/local/lib/blastworks/forge` for FORGE views. No package installation, listening service, token or new dependency.
+The companion contract in [integrations/glitch-plan-session-view/SKILL.md](integrations/glitch-plan-session-view/SKILL.md) describes how `$glitch-plan` adds the block and how its interactive executor maintains it. Keep normal Build choices, detailed tasks, dated Progress and the sole START HERE. Existing plans gain the block deliberately when resumed/revised; there is no bulk migration or inferred state.
 
-PLAN sources need exactly one `## Progress` section with Markdown checkboxes and one `## START HERE`. Fenced examples are ignored. Unsupported plans fail explicitly; they are not guessed or rewritten. Only checked items become done. FORGE views show each ticket's actual state: DEPLOYED/REJECTED are closed, IN PROGRESS is active, IDEA/CREATED/ELIGIBLE are pending, remaining review/hold/release states are blocked. COMMITTED never means deployed.
-
-## Install a reviewed revision (deployment gate)
-
-Do this only after independent review and owner deployment approval, under the target Unix seat. Do not run a service from a group-writable checkout. Copy the reviewed plugin to a private, seat-owned release folder, then install from that local directory:
+Example (the helper generates a fresh stable plan id):
 
 ```sh
-/usr/local/lib/tern/current/tern plugin install /absolute/private/reviewed-release
+session-list template --title "CSV import" --step "Implement the parser" --step "Prove the import" --step "Review and land the change"
 ```
 
-Plugin ID: `estate-session-list` (coexists with upstream `session-list`). Before opening a fresh pane, verify its plugin-data directory and ancestors are private to this seat: root must have mode 0700, owned by the acting UID, no symlink components or group/world-writable non-sticky ancestors. The helper refuses unsafe storage; it does not chmod or repair another seat's files. `SESSION_LIST_DATA` and `SESSION_LIST_EPOCH` are injected by the plugin into new panes. Do not set them by hand in a live pane.
+The command prints a fenced JSON block between `<!-- TERN-SESSION:START -->` and `<!-- TERN-SESSION:END -->`; the agent places it in the canonical plan through its normal write path. States are `pending`, `active`, `blocked`, `done`. At most one is active. `current` names the active/blocked checkpoint, or is null; blocked checkpoints require a reason. Stable ids survive description/reordering changes. The view never edits these fields.
 
-Invoke the command by the installed package's absolute path or a PATH symlink. In that pane:
+The companion is a source integration asset, **not an installed override of managed Glitch skills**. Live customization/upstream integration needs its own reviewed deployment.
+
+## Local or SSH
+
+Choose **Interactive plan: attach to this tab** in Tern's palette, select the agent's plan location and enter its absolute path:
+
+- **Local:** the file is on the machine running this Tern session's daemon, even when a different desktop displays it. The agent can itself be SSH-launched if that host shares the canonical plan filesystem.
+- **SSH:** the plan is on an explicitly reviewed ordinary SSH destination. The read-only reader is sent over SSH stdin to Python 3; no remote package installation or source write occurs. Existing host-key trust and authentication remain required. No key is copied, no host is trusted automatically and no forwarding is enabled. Forced agent-launch aliases (`seat-*`) are refused.
+
+The remote source requires Python 3 and a POSIX shell. Native local reading is portable Python; the Windows command shim uses existing `py` or `python3`. No new package dependency or listening service is added. Authentication errors, unsupported shells, missing Python and invalid checkpoint blocks fail visibly. SSH access never falls back to another source or identity.
+
+Direct source checks (no Tern environment required):
 
 ```sh
-session-list bind --work-id WORK-123 --plan /absolute/canonical/PLAN.md
-# OR
-session-list bind --work-id WORK-123 --forge COMMANDER-993
-session-list refresh
-session-list show
+session-list source --plan /absolute/PLAN.md
+session-list source --plan /absolute/PLAN.md --ssh reviewed-host
 ```
 
-Update the canonical record through its normal approved path, then run `refresh`. `show`, `start` and `check` also re-read the source. `check --hook` is silent on success and **never exits 2**: incomplete work is not permission to restart an agent. A missing binding is an explicit error; it never searches for or takes another pane's assignment. The panel automatically opens once for each bound pane; closing it leaves it closed, with a palette command to show it again.
+The reader returns only the validated checkpoint object, not whole plan prose, instructions or credentials. Requests have a finite deadline; each panel refreshes independently. There is no seat-wide lock or FORGE lookup. Usage/read errors return 1, never the Stop-hook continuation code 2. No hook is installed or required.
 
-## Tests and observed limits
+## Runtime and rollout
 
-Run the focused boundary suite (no live Tern touched):
+**Tern 0.9.10 or later is the minimum supported runtime for both the session daemon and viewing client.** Evidence uses 0.9.10. The existing estate daemons observed on 0.9.8 are not qualified; changing a symlink does not update a running daemon. Confirm the actual running binary/client versions and obtain the normal maintenance approval before an update. This fork does not update or restart Tern.
+
+After exact-head cross-family review and owner-approved pilot, install the reviewed local package with Tern's ordinary plugin installer. Plugin ID remains `estate-session-list`; displayed name is **Interactive plan**. Install on the actual session host/client combination; do not run a deployed service/plugin from a group-writable development checkout. See [docs/RUNBOOK.md](docs/RUNBOOK.md).
+
+## Verification
 
 ```sh
 python3 -m unittest discover -s tests -p estate_test.py
+python3 tests/estate_smoke.py --evidence /absolute/private/evidence.json
 ```
 
-Tests exercise the executable helper with real PLAN files: canonical refresh/rebinding refusal; unsafe store/symlink refusal; source-failure invalidation/epoch separation. `tests/estate_smoke.py` runs an isolated real Tern daemon, binds a disposable PLAN, edits and refreshes it, and reads a real FORGE ticket. It never touches the target seat's ordinary daemon/config, windows or hooks.
+The connected test uses a disposable Tern daemon, private Xvfb window and real loopback SSH server with generated temporary keys and strict host-key checking. It touches no live estate configuration or provider. Source and restored identity, local/SSH state changes, visible failures and independent views are checked. See [docs/VALIDATION.md](docs/VALIDATION.md) for observed results and unqualified platforms; loopback SSH is not proof of a remote Windows/macOS deployment.
 
-Upstream `tests/*_test.luau` remain tests of the retained upstream libraries. Upstream `tests/cli.sh`, `tests/cli.ps1`, and `tests/dev-copy.sh` target the old request protocol and **must not be used for this fork** (they use fixed test plugin names and mutate installations). The original Windows command entry points now refuse with an explicit explanation.
-
-Qualification still owed: real Windows/macOS client rendering from remote Unix seats, native CLI lifecycle hooks and host restart/reconnect. A loaded plugin and passing helper tests do not prove these outcomes. See `docs/VALIDATION.md` and `docs/RUNBOOK.md`.
+Upstream model/test libraries remain as licensed reference. Its old live `tests/cli.sh`, `tests/cli.ps1` and `tests/dev-copy.sh` target a retired request protocol and must not be run for this fork.
 
 ## Attribution
 
-The native checklist renderer, theme assets and retained model/test libraries originate with Felipe Carneiro, `felipevdc1/tern-session-list`, MIT. Original copyright/permission text remains in LICENSE. Upstream credits oh-my-pi's todo for reminder, blocked-state and human-removal ideas; the estate runtime does not use its automatic reminder mechanism. New Python adapter and replacement host/window integration: CodexBWAI, MIT. No private estate memory, credentials or plan contents belong in this public repository.
+Original plugin/native-checklist approach: Felipe Carneiro (`felipevdc1/tern-session-list`), MIT, based on f5920de0cc1018fa9814e5f0c6cca83a7ddf34dc. Original LICENSE remains. English-first view, explicit checkpoint reader, local/SSH source path and workflow contract: CodexBWAI, MIT. This fork does not claim independent origin of the native checklist design. No private estate memory or credentials belong in this public repository.

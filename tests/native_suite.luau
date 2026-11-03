@@ -2,7 +2,7 @@
 -- CodexBWAI, COMMANDER-993. Required by the smoke harness, never production.
 local suites = {
     require("./nucleo_test"), require("./textos_test"), require("./pedidos_test"),
-    require("./vista_test"), require("./lembrete_test"), require("./brilho_test"),
+    require("./vista_test"), require("./lembrete_test"), require("./brilho_test"), require("./plan_view_test"),
 }
 local passed, failures = 0, {}
 for _, suite in suites do

@@ -1,93 +1,89 @@
--- Estate projection host. CodexBWAI, COMMANDER-993, MIT.
--- Reuses Felipe Carneiro's native checklist renderer; canonical state is read-only.
-local vista = require("./lib/vista")
-local textos = require("./lib/textos")
-local D = tern.plugin.data
-local epoch = string.format("host-%d-%d-%d", os.time(), math.floor(tern.now()), math.random(1, 999999999))
-local epochs = {}
-local generation = 0
-local blocks = {}
-local signatures = {}
-local opened = {}
-local status = { pending = "aberto", active = "fazendo", done = "feito", blocked = "travado" }
+-- Interactive-plan view. CodexBWAI, COMMANDER-993, MIT.
+-- Identity is the explicitly selected source + immutable plan_id, never another pane number.
+local view = require("./lib/plan_view")
+local KIND = tern.plugin.id .. ".list"
+local instances = {}
+local POLL_MS = 1500
 
--- No old numeric pane can inherit a snapshot from a different host load.
-local function snapshot(pane)
-    local path = D .. "/views/" .. tostring(pane) .. ".json"
-    local ok, result = pcall(function()
-        if not tern.fs.exists(path) then return nil end
-        return tern.json.decode(tern.fs.read(path, 1024 * 1024))
+local function sourceValid(source)
+    return type(source) == "table" and type(source.path) == "string" and source.path ~= ""
+        and (source.ssh == nil or (type(source.ssh) == "string" and source.ssh ~= ""))
+end
+local function live(state)
+    if instances[state.panel] ~= state then return false end
+    for _, pane in tern.pane.list() do
+        if pane.pane == state.panel then return pane.program == KIND end
+    end
+    instances[state.panel] = nil
+    return false
+end
+local function redraw(state, cx)
+    if live(state) then pcall(function() cx:render() end) end
+end
+local function refresh(state, cx)
+    if not live(state) or not state.source or state.reading then return end
+    state.reading = true
+    local helper = tern.plugin.dir .. "/bin/estate_session_list.py"
+    local argv = {"python3", "-I", helper, "source", "--plan", state.source.path}
+    if tern.runtime.os == "windows" then argv = {"py", "-3", "-I", helper, "source", "--plan", state.source.path} end
+    if state.source.ssh then table.insert(argv, "--ssh"); table.insert(argv, state.source.ssh) end
+    local ok = pcall(function()
+        tern.process.run(argv, {timeout_ms = 6000}, function(result)
+            if not live(state) then return end
+            state.reading = false
+            local decoded, envelope = pcall(tern.json.decode, result.stdout or "")
+            local plan = if decoded and type(envelope) == "table" then envelope.plan else nil
+            if result.status ~= 0 or not decoded or envelope.ok ~= true or type(plan) ~= "table" then
+                state.plan = nil
+                state.error = if decoded and type(envelope) == "table" and type(envelope.error) == "string" then envelope.error else "Could not read the selected source. Check its location, access and Python 3."
+            elseif type(plan.plan_id) ~= "string" or type(plan.checkpoints) ~= "table" or type(plan.title) ~= "string" then
+                state.plan = nil; state.error = "Source returned an invalid checkpoint report."
+            elseif state.plan_id ~= nil and state.plan_id ~= plan.plan_id then
+                state.plan = nil; state.error = "This file now belongs to a different plan. Close this panel and explicitly attach the intended plan."
+            else
+                local firstBinding = state.plan_id == nil
+                state.plan_id = plan.plan_id
+                state.plan = plan
+                state.error = nil
+                state.updated = os.date("!%Y-%m-%d %H:%M:%S UTC")
+                if firstBinding then pcall(function() cx:save() end) end
+            end
+            redraw(state, cx)
+            tern.timer(POLL_MS, function() refresh(state, cx) end)
+        end)
     end)
-    if not ok or type(result) ~= "table" or result.epoch ~= epochs[pane] or result.pane ~= pane then
-        return nil
+    if not ok then
+        state.reading = false; state.plan = nil
+        state.error = "Could not start the read-only source reader. Tern 0.9.10+ and Python 3 are required."
+        redraw(state, cx)
+        tern.timer(POLL_MS, function() refresh(state, cx) end)
     end
-    if type(result.work_id) ~= "string" or type(result.items) ~= "table" then return nil end
-    return result
 end
-
-local function viewModel(s)
-    local items = {}
-    for _, item in s.items do
-        if type(item.text) == "string" and status[item.state] then
-            table.insert(items, {id = item.id, texto = item.text, estado = status[item.state], motivo = item.note})
-        end
-    end
-    if s.error then
-        items = {{id = "source-error", texto = "Source unavailable", estado = "travado", motivo = tostring(s.error)}}
-    end
-    return {id = s.work_id, assunto = s.work_id .. " · " .. tostring(s.title or "Source error"), itens = items}
-end
-
-tern.on("spawn", function(spec)
-    local pane = tonumber(spec.env.TERN_PANE)
-    if pane == nil then return nil end
-    generation += 1
-    epochs[pane] = epoch .. "-" .. tostring(generation)
-    spec.env.SESSION_LIST_DATA = D
-    spec.env.SESSION_LIST_EPOCH = epochs[pane]
-    return spec
-end)
 
 tern.block.define("list", {
     init = function(cx, args, saved)
-        local pane = tonumber(args and args[1]) or (type(saved) == "table" and tonumber(saved.pane)) or cx.pane
-        tern.kv.set("estate-panel:" .. tostring(pane), cx.pane)
-        blocks[pane] = blocks[pane] or {}
-        table.insert(blocks[pane], cx)
-        return {pane = pane}
-    end,
-    view = function(state, cx)
-        local s = snapshot(state.pane)
-        if s == nil then
-            return {main = tern.ui.text({tern.ui.span("No current binding. Bind this pane's assigned PLAN/FORGE work.", "muted")})}
+        local state = {panel = cx.pane}
+        -- A saved binding can only read the same selected source and stable plan id.
+        -- Legacy bare-pane saves/args are deliberately not migrated or followed.
+        if type(saved) == "table" and saved.schema == 2 and sourceValid(saved.source) and type(saved.plan_id) == "string" then
+            state.source = saved.source; state.plan_id = saved.plan_id
+        elseif saved == nil and args and type(args[1]) == "string" then
+            local ok, source = pcall(tern.json.decode, args[1])
+            if ok and sourceValid(source) then state.source = source end
         end
-        return vista.desenha({lista = viewModel(s), orfas = {}, ilegiveis = {}, readonly = true,
-            source = (s.plan or table.concat(s.forge or {}, ", ")) .. " · Read " .. tostring(s.updated_at) .. " · Snapshot; refresh from source"},
-            tern.ui, textos.textos("en"))
+        if not state.source then state.error = "No plan is attached. Close this panel and use Interactive plan: attach to this tab." end
+        instances[cx.pane] = state
+        tern.timer(1, function() refresh(state, cx) end)
+        return state
     end,
-    title = function(state)
-        local s = snapshot(state.pane)
-        return if s then s.work_id else "Session view"
+    view = function(state)
+        local source = if state.source then (if state.source.ssh then "SSH " .. state.source.ssh .. ": " else "Local: ") .. state.source.path else ""
+        return view.draw(tern.ui, state.plan, source, state.error, state.updated)
     end,
-    save = function(state) return {pane = state.pane} end,
-    -- Deliberately no mutation key/event handler or orphan adoption action.
+    title = function(state) return if state.plan then state.plan.title else "Interactive plan" end,
+    save = function(state)
+        if state.source and state.plan_id then return {schema = 2, source = state.source, plan_id = state.plan_id} end
+        return {schema = 2}
+    end,
+    -- No checkpoint editing, canonical writes, prompt sending or work adoption.
 })
-
-local function tick()
-    for _, info in tern.pane.list() do
-        local s = snapshot(info.pane)
-        if s then
-            local signature = tern.json.encode(s)
-            if signatures[info.pane] ~= signature then
-                signatures[info.pane] = signature
-                for _, cx in blocks[info.pane] or {} do pcall(function() cx:render() end) end
-            end
-            if opened[info.pane] ~= s.work_id then
-                tern.kv.set("estate-open:" .. tostring(info.pane), s.work_id)
-                opened[info.pane] = s.work_id
-            end
-        end
-    end
-    tern.timer(500, tick)
-end
-tern.timer(500, tick)

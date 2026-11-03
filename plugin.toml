@@ -1,13 +1,13 @@
 schema = 1
 id = "estate-session-list"
-name = "Estate session view"
-version = "0.2.0"
+name = "Interactive plan"
+version = "0.3.0"
 host = "host.luau"
 window = "window.luau"
 styles = ["styles.css"]
 
 [[blocks]]
 id = "list"
-title = "Session list"
+title = "Interactive plan"
 icon = "list"
 palette = false

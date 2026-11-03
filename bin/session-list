@@ -1,5 +1,7 @@
 #!/bin/sh
-# CodexBWAI — COMMANDER-993. Resolve a PATH symlink; don't import from cwd.
-set -eu
-script=$(readlink -f -- "$0")
-exec /usr/bin/python3 -I "$(dirname -- "$script")/estate_session_list.py" "$@"
+# CodexBWAI — COMMANDER-993. Local or SSH source reader; no Tern environment needed.
+script=$(python3 -I -c 'from pathlib import Path; import sys; print(Path(sys.argv[1]).resolve())' "$0") || exit 1
+python3 -I "$(dirname -- "$script")/estate_session_list.py" "$@"
+result=$?
+[ "$result" -eq 2 ] && exit 1
+exit "$result"

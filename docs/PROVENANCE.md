@@ -1,14 +1,13 @@
 # Licensing and source provenance
 
-Recorded by CodexBWAI for COMMANDER-993.
+CodexBWAI, COMMANDER-993. This fork is MIT; original LICENSE remains.
 
-| Component | Source | Licence | Use |
-| --- | --- | --- | --- |
-| Original plugin, native checklist renderer, themes and retained test/model libraries | felipevdc1/tern-session-list, commit f5920de0cc1018fa9814e5f0c6cca83a7ddf34dc | MIT | Forked with original LICENSE retained |
-| Estate Python adapter, replacement host/window and integration tests/docs | CodexBWAI | MIT | New estate code; no external package dependency |
-| Tern | Existing estate installation | Existing estate approval | Runtime API; no Tern source copied or new binary fetched |
-| Python standard library | Existing system Python | Existing system runtime | No new interpreter installation |
+| Component | Source | Licence/use |
+| --- | --- | --- |
+| Original plugin and native-checklist approach; retained reference libraries/tests | felipevdc1/tern-session-list, f5920de0cc1018fa9814e5f0c6cca83a7ddf34dc | MIT, original attribution retained |
+| Interactive source reader, plan-bound host/window, English-first view and planning/execution contract | CodexBWAI | New MIT source; native view derived from the upstream checklist approach |
+| Tern 0.9.10+, Python standard library, OpenSSH | Existing approved estate/system runtimes | No new package, binary download or copied Tern/OpenSSH source |
 
-Upstream credits oh-my-pi for three todo ideas. Those original credits remain in README; its separate source was not fetched or copied in this adaptation. Author attribution is retained, and this fork does not claim independent origin of the native checklist design.
+No orchestration or code was copied from ORCH+/SPAWN. Their existing documents were consulted to understand native Tern host/window capabilities and the estate's local/SSH context. Native signatures were checked through the installed Tern-generated API types. The redesigned panel reads a selected plan source; it does not report to an orchestrator or dispatch an agent.
 
-Before production rollout, the estate licensing register and Stack Registry must reference the approved deployed fork and exact SHA. This public repository does not embed or replace the estate's private governance records.
+Upstream credits oh-my-pi for todo ideas. That source was not fetched or copied in this adaptation. Its automatic reminder mechanism is not active here. The estate licensing/Stack Registry entries are a rollout gate; this public repository does not duplicate private governance records.

@@ -1,71 +1,70 @@
-"""COMMANDER-993 boundary tests, CodexBWAI. No live Tern state is touched."""
+"""Interactive source/CLI/SSH boundaries. CodexBWAI, COMMANDER-993."""
 import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+READER = ROOT/'bin/estate_session_list.py'
 
 
-class EstateContract(unittest.TestCase):
+def plan(plan_id='plan-123456abcdef', state='pending'):
+    return {'schema': 1, 'plan_id': plan_id, 'title': 'Interactive task',
+            'current': 'cp1' if state in ('active', 'blocked') else None,
+            'checkpoints': [{'id': 'cp1', 'text': 'Prove the outcome', 'state': state,
+                             **({'reason': 'Waiting for owner approval'} if state == 'blocked' else {})}]}
+
+
+def write_plan(path, value):
+    # Estate prose is untouched; only the deliberate explicit block is interpreted.
+    path.write_text('# Interactive task\n## Progress\n3 Nov: initial discussion.\n'
+                    '## START HERE — next action\nFollow the agreed task.\n'
+                    '<!-- TERN-SESSION:START -->\n```json\n'+json.dumps(value)+'\n```\n<!-- TERN-SESSION:END -->\n')
+
+
+class SourceContract(unittest.TestCase):
     def setUp(self):
-        self.scratch = tempfile.TemporaryDirectory(prefix="tern-estate-", dir="/var/tmp")
+        self.scratch = tempfile.TemporaryDirectory(prefix='interactive-plan-', dir='/var/tmp')
         self.addCleanup(self.scratch.cleanup)
         self.base = Path(self.scratch.name)
-        self.data = self.base / "data"
-        self.data.mkdir(mode=0o700)
-        self.plan = self.base / "PLAN.md"
-        self.plan.write_text("# Demo\n## Progress\n- [ ] CP1: prove outcome\n## START HERE\nCodexBWAI continues CP1.\n")
-        self.env = dict(os.environ, TERN_PANE="7", SESSION_LIST_DATA=str(self.data),
-                        SESSION_LIST_EPOCH="host-test-123")
+        self.path = self.base/'PLAN with spaces.md'
+        write_plan(self.path, plan())
 
-    def run_cli(self, *args, ok=True):
-        result = subprocess.run([str(ROOT / "bin/session-list"), *args], env=self.env,
-                                text=True, capture_output=True, timeout=10)
-        if ok and result.returncode:
-            self.fail(result.stderr)
-        return result
+    def cli(self, *args, env=None):
+        return subprocess.run([sys.executable, '-I', str(READER), *map(str, args)],
+                              capture_output=True, text=True, timeout=6, env=env)
 
-    def bind(self):
-        return self.run_cli("bind", "--work-id", "DEMO-1", "--plan", str(self.plan))
+    def test_explicit_block_reads_without_tern_and_never_writes_the_plan(self):
+        before = self.path.read_bytes()
+        result = self.cli('source', '--plan', self.path)
+        self.assertEqual((result.returncode, json.loads(result.stdout)['plan']), (0, plan()))
+        self.assertEqual(self.path.read_bytes(), before)
 
-    def view(self):
-        return json.loads((self.data / "views/7.json").read_text())
+    def test_schema_failure_and_cli_usage_are_errors_not_stop_continuations(self):
+        write_plan(self.path, plan(state='blocked'))
+        value = plan(state='blocked')
+        del value['checkpoints'][0]['reason']
+        write_plan(self.path, value)
+        self.assertEqual(self.cli('source', '--plan', self.path).returncode, 1)
+        self.assertEqual(self.cli('source', '--mistyped').returncode, 1)
+        self.assertEqual(self.cli('unrecognized').returncode, 1)
 
-    def test_projection_reads_canonical_progress_and_refuses_rebinding(self):
-        """Real CLI, source edit, refresh and ownership conflict; source stays authoritative."""
-        self.bind()
-        text = self.plan.read_text().replace("[ ]", "[x]")
-        self.plan.write_text(text)
-        self.run_cli("refresh")
-        self.assertEqual((self.view()["items"][0]["state"], self.plan.read_text()), ("done", text))
-        result = self.run_cli("bind", "--work-id", "OTHER-1", "--plan", str(self.plan), ok=False)
-        self.assertEqual(result.returncode, 1)
-        self.assertEqual(self.view()["work_id"], "DEMO-1")
-
-    def test_private_store_and_symlink_boundary(self):
-        """Another Unix user's writable store or redirected output must never be accepted."""
-        self.data.chmod(0o770)
-        self.assertEqual(self.run_cli("bind", "--work-id", "DEMO-1", "--plan", str(self.plan), ok=False).returncode, 1)
-        self.data.chmod(0o700)
-        outside = self.base / "outside"
-        outside.mkdir()
-        (self.data / "views").symlink_to(outside)
-        self.assertEqual(self.run_cli("bind", "--work-id", "DEMO-1", "--plan", str(self.plan), ok=False).returncode, 1)
-        self.assertEqual(list(outside.iterdir()), [])
-
-    def test_failed_refresh_and_epoch_change_cannot_show_old_success(self):
-        """Source failure removes old success; reused numeric pane requires a fresh binding."""
-        self.bind()
-        self.plan.write_text("# Broken source\n")
-        self.assertEqual(self.run_cli("refresh", ok=False).returncode, 1)
-        view = self.view()
-        self.assertTrue(view["error"] and not view["items"])
-        self.env["SESSION_LIST_EPOCH"] = "new-host-456"
-        self.assertEqual(self.run_cli("refresh", ok=False).returncode, 1)
+    def test_ssh_command_preserves_path_boundaries_and_sends_only_the_reader(self):
+        # Contract fixture executes the transmitted reader through a real subprocess.
+        # The separate connected smoke uses a real loopback SSH client/server.
+        binary = self.base/'ssh'
+        binary.write_text('#!'+sys.executable+'\nimport subprocess,sys,shlex\n'
+                          'r=subprocess.run(shlex.split(sys.argv[-1]),input=sys.stdin.read(),text=True,capture_output=True)\n'
+                          'sys.stdout.write(r.stdout); sys.exit(r.returncode)\n')
+        binary.chmod(0o700)
+        result = self.cli('source', '--plan', self.path, '--ssh', 'reviewed-test',
+                          env=dict(os.environ, PATH=str(self.base)+os.pathsep+os.environ['PATH']))
+        self.assertEqual((result.returncode, json.loads(result.stdout)['plan']), (0, plan()))
+        self.assertEqual(self.cli('source', '--plan', self.path, '--ssh', 'seat-claudebwai').returncode, 1)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
