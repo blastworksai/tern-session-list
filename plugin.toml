@@ -1,7 +1,7 @@
 schema = 1
-id = "session-list"
-name = "Session list"
-version = "0.1.0"
+id = "estate-session-list"
+name = "Estate session view"
+version = "0.2.0"
 host = "host.luau"
 window = "window.luau"
 styles = ["styles.css"]

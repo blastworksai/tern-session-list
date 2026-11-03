@@ -146,7 +146,7 @@ local function orfa(ui, t, lista)
 	}, itens, depois)
 end
 
-local function minha(ui, t, lista, sel)
+local function minha(ui, t, lista, sel, readonly)
 	local itens = if lista then lista.itens else {}
 	if #itens == 0 then
 		return ui.text({ ui.span(t.nadaCombinado, "muted") })
@@ -169,7 +169,7 @@ local function minha(ui, t, lista, sel)
 		title = assunto,
 		target = contagem(itens),
 		-- an item in progress = the work is running (Tern's live bar)
-		status = if fazendo then "running" else "done",
+		status = if fazendo then "running" else if readonly and contagem(itens) ~= `{#itens}/{#itens}` then "pending" else "done",
 	}, linhas)
 end
 
@@ -206,14 +206,17 @@ function vista.desenha(estado, ui, t)
 	for _, o in estado.orfas or {} do
 		table.insert(filhos, orfa(ui, t, o))
 	end
-	table.insert(filhos, minha(ui, t, estado.lista, estado.sel))
+	table.insert(filhos, minha(ui, t, estado.lista, estado.sel, estado.readonly))
+	if estado.readonly then
+		table.insert(filhos, ui.text({ui.span(estado.source or "Read-only canonical view", "muted")}))
+	end
 	for _, arquivo in estado.ilegiveis or {} do
 		table.insert(filhos, ui.text({ ui.span(t.ilegivel(arquivo), "warn") }))
 	end
 	local temItens = estado.lista ~= nil and #estado.lista.itens > 0
 	return {
 		main = ui.col(filhos),
-		dock = if temItens then ui.col({ dica(ui, t) }) else nil,
+		dock = if temItens and not estado.readonly then ui.col({ dica(ui, t) }) else nil,
 		layer = if estado.brilho then ui.col({ anel(ui) }) else nil,
 	}
 end

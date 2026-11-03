@@ -1,0 +1,15 @@
+# Estate rollout runbook — COMMANDER-993
+
+Author: CodexBWAI. This is a gated release procedure, not permission to deploy.
+
+1. Obtain cross-family review of the exact PR head. Record the verdict on COMMANDER-993. No author self-review substitutes for it. ReleaseManager owns merge.
+2. After merge, obtain owner approval for a named native-seat pilot. Confirm the actual host/client versions, source SHA, Unix owner, current PLAN/WORK-ID and existing hook ownership. AGP/OMP are excluded. Never install in another seat's home as CodexBWAI.
+3. Under the target seat, prepare a private release directory containing the reviewed repository files (no `.git`, local evidence or caches). Ensure its parents and code cannot be written by another principal. Do not run the installed plugin from the group-writable development worktree. Retain the upstream MIT license and this fork's attribution.
+4. Install that local release through `tern plugin install <absolute-private-release>`. Identify the actual plugin data directory under that seat's Tern config. Establish private seat ownership/modes before binding; never share the directory between UIDs. `tern plugin list --json` must show `estate-session-list` ready and no problems.
+5. Open a fresh native Tern shell under that seat. Bind only the exact work from its canonical START HERE or dispatch. `session-list` is the installed `bin/session-list`, invoked by absolute path or a PATH symlink. A missing `TERN_PANE` or plugin epoch is a refusal, not permission to fabricate one. Herdr-inside-SSH panes are outside this path.
+6. Verify one pending checkpoint renders; update its disposable canonical fixture, refresh and observe done in the real frontend; corrupt the fixture and observe a blocked source error. Check another pane's source does not appear. Repeat palette show and prove one panel. Restore the fixture. Do not edit live work just to make a test pass.
+7. Disconnect/reconnect the real Windows/macOS frontend and restart the target daemon at an explicitly approved safe checkpoint. Verify no old numeric pane inherits a list. Open a new pane and bind the preserved authorized work. Prove real panel rendering across the remote client before extending beyond the pilot.
+8. Only after that proof, make a separately reviewed estate hook-registry change if automatic checkpoint refresh is wanted. No hooks are installed by this fork. Never add a Stop continuation or agent prompt sender. Non-hook agents run refresh after their canonical checkpoint updates.
+9. Update the estate Stack Registry and relevant wiki page on actual pilot deployment. Record the exact installed SHA, seat, client/daemon versions, evidence and outstanding wider rollout on COMMANDER-993. A source PR is not DEPLOYED.
+
+Removal is its own authorized operation: `tern plugin remove estate-session-list`. Do not remove upstream `session-list`, any other seat's plugin/data, or the canonical work record. Data retention/deletion is the owner's separate choice. No auto-delete, cleanup cron, outbound notifier or fallback orchestrator is added.
