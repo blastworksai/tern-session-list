@@ -1,181 +1,64 @@
-# session-list (Tern plugin)
+# Interactive plan for Tern
 
-A list beside each Tern tab of the parts of the work you agreed with your agent, kept by the agent itself and visible to you while it works.
-It works with any agent that can run a shell command (Claude Code, Codex, or anything else): the agent notes the parts with `session-list add`, marks the one it is on, ticks each as it finishes, and the panel beside the tab shows the list as it stands.
-One list per tab; when a tab closes with parts still open, the next tab is offered that list.
-It is not a task manager: it holds only what is still open from the conversation in that tab.
+English-first checkpoint visibility for the interactive `$glitch-plan` → execution workflow. The canonical plan contains explicit agreed checkpoints, their current state and a blocked reason. The panel is a read-only native Tern checklist.
 
-Built after Kristof Kennes asked for a Tern, provider-agnostic version of the Claude Code session list.
-Three ideas are taken from oh-my-pi's `todo`: a reminder when the agent stops with parts still open, a "blocked, with a reason" state, and respecting items the person removed by hand.
+This is the Blastworks fork of [Felipe Carneiro's session-list](https://github.com/felipevdc1/tern-session-list), MIT. Interactive adaptation: CodexBWAI, COMMANDER-993. **Preview: not deployed; cross-family review and real-client qualification remain gates.**
 
-## Install
+## Scope
 
-```
-tern plugin install github.com/felipevdc1/tern-session-list
-```
+Interactive sessions only. Fleet/BWPM/FORGE execution is outside the view. The writer/executor updates the one canonical plan; the plugin displays its explicit checkpoint block. It never interprets dated prose as task completion, writes the plan, sends an agent prompt, adopts another task or grants release/deployment authority.
 
-`tern plugin install` clones the repository and copies the package into the plugins folder that `tern plugin dir` prints (on macOS, `~/Library/Application Support/Tern/plugins`).
-Then put the `session-list` command on your `PATH`.
-The package's folder name inside the plugins folder was not checked for an installed copy: run `ls "$(tern plugin dir)"` to see it.
-If it is `session-list`, one line does it:
+The panel binds to an explicitly selected source and stable `plan_id`. It does **not** follow another terminal's number. Restoring a view preserves that same source/id; replacing a file with a different plan is refused. A failed read clears previous success and shows an error.
 
-```
-ln -s "$(tern plugin dir)/session-list/bin/session-list" ~/.local/bin/session-list
+## Planning integration
+
+The companion contract in [integrations/glitch-plan-session-view/SKILL.md](integrations/glitch-plan-session-view/SKILL.md) describes how `$glitch-plan` adds the block and how its interactive executor maintains it. Keep normal Build choices, detailed tasks, dated Progress and the sole START HERE. Existing plans gain the block deliberately when resumed/revised; there is no bulk migration or inferred state.
+
+Example (the helper generates a fresh stable plan id):
+
+```sh
+session-list template --title "CSV import" --step "Implement the parser" --step "Prove the import" --step "Review and land the change"
 ```
 
-(`~/.local/bin` must be on your `PATH`; use any folder that is.)
-On Windows, add the package's `bin` folder to your `PATH`: `bin/session-list.cmd` runs `bin/session-list.ps1` with `pwsh`, or Windows PowerShell when `pwsh` is missing.
-Check it with `tern plugin list` (the plugin shows as `session-list 0.1.0`) and `session-list help`.
+The command prints a fenced JSON block between `<!-- TERN-SESSION:START -->` and `<!-- TERN-SESSION:END -->`; the agent places it in the canonical plan through its normal write path. States are `pending`, `active`, `blocked`, `done`. At most one is active. `current` names the active/blocked checkpoint, or is null; blocked checkpoints require a reason. Stable ids survive description/reordering changes. The view never edits these fields.
 
-## Tell your agent
+The companion is a source integration asset, **not an installed override of managed Glitch skills**. Live customization/upstream integration needs its own reviewed deployment.
 
-[`agents/INSTRUCTIONS.md`](agents/INSTRUCTIONS.md) has the rule to paste into `AGENTS.md` or `CLAUDE.md` (English and Portuguese), the hooks for Claude Code and Codex, and what to do for agents without hooks.
-The rule, in one paragraph:
+## Local or SSH
 
-```
-Session list: when you and the person agree on a piece of work in parts, note the parts right away with `session-list add "part 1" "part 2"`, not at the end. Mark the part you are working on with `session-list doing <id>`, and tick each part with `session-list done <id>` as soon as it is done; if a part waits on someone, `session-list block <id> <reason>`. The person can also ask "add this to the session list". This list is NOT the person's task list: never copy their tasks here, and never move items to another task list unless they ask.
-```
+Choose **Interactive plan: attach to this tab** in Tern's palette, select the agent's plan location and enter its absolute path:
 
-The hooks add two things: the rule and the list (and any list a closed tab left) are put in front of the agent when a session starts, and the agent is reminded of open parts when it is about to stop.
-The SessionStart hook already teaches the rule; the paragraph in `AGENTS.md` is for agents without hooks.
+- **Local:** the file is on the machine running this Tern session's daemon, even when a different desktop displays it. The agent can itself be SSH-launched if that host shares the canonical plan filesystem.
+- **SSH:** the plan is on an explicitly reviewed ordinary SSH destination. The read-only reader is sent over SSH stdin to Python 3; no remote package installation or source write occurs. Existing host-key trust and authentication remain required. No key is copied, no host is trusted automatically and no forwarding is enabled. Forced agent-launch aliases (`seat-*`) are refused.
 
-## The panel
+The remote source requires Python 3 and a POSIX shell. Native local reading is portable Python; the Windows command shim uses existing `py` or `python3`. No new package dependency or listening service is added. Authentication errors, unsupported shells, missing Python and invalid checkpoint blocks fail visibly. SSH access never falls back to another source or identity.
 
-When a tab's list gets its first item, a panel opens to the right of that tab, once per list.
-If you close it, it stays closed until you run "Session list: show for this tab" from the palette or a new list starts in that tab.
-It is drawn with Tern's own todo card, so it follows your Tern theme.
+Direct source checks (no Tern environment required):
 
-Keys, with the panel focused:
-
-- `↑`/`↓` or `j`/`k`: select an item.
-- `space` or `enter`: tick or untick it.
-- `d`: mark it as the one in progress (one at a time per list).
-- `x` or `backspace`: remove it.
-  An item you remove by hand is remembered: the agent cannot add the same text back unless you ask it to (`--again`).
-
-Lists a closed tab left with open items appear on top, with **Continue here** (adopt it into this tab) and **Discard**.
-When an item becomes done, the panel shows a short rainbow glow, the same effect Tern uses for a working pane (one turn in 2.4 s; off when your system asks for reduced motion).
-
-Palette commands:
-
-- **Session list: show for this tab** opens the panel beside the focused tab.
-- **Session list: language** switches between English and Português (Brasil).
-
-## The command
-
-```
-session-list add "<text>"...      add items, one per argument
-    --subject <s>                 also name the list
-    --again                       re-add a text the person removed by hand
-session-list doing <id>           mark the item you are working on (one at a time)
-session-list done <id>...         tick items as done
-session-list undo <id>...         untick done items
-session-list remove <id>...       remove items
-session-list name <subject>       name the list
-session-list block <id> <reason>  mark an item as waiting on someone
-session-list unblock <id>         back to open
-session-list show                 show this tab's list and lists closed tabs left
-session-list adopt <listId>       take over a list a closed tab left
-session-list discard <listId>     discard a list a closed tab left
-session-list start                session-start hook: the rule, the list and orphan questions
-session-list check                stop hook: reminds of open items
-    --hook                        read the hook's JSON on stdin, exit 2 to remind
-session-list help                 this screen
+```sh
+session-list source --plan /absolute/PLAN.md
+session-list source --plan /absolute/PLAN.md --ssh reviewed-host
 ```
 
-Every answer is the list as it now stands.
-It only works inside a Tern pane (it needs `TERN_PANE`).
-Set `SESSION_LIST_NO_ORPHANS` in a pane no person watches to leave the closed-tab lists out of its answers.
+The reader returns only the validated checkpoint object, not whole plan prose, instructions or credentials. Requests have a finite deadline; each panel refreshes independently. There is no seat-wide lock or FORGE lookup. Usage/read errors return 1, never the Stop-hook continuation code 2. No hook is installed or required.
 
-Exit codes:
+## Runtime and rollout
 
-- `0`: done, the list on stdout.
-- `1`: an error, on stderr; also when it runs outside a Tern pane, and when the plugin does not answer within 5 s.
-- `2`: only `check --hook`, when there is a reminder (on stderr, which Claude Code and Codex feed back to the agent).
+**Tern 0.9.10 or later is the minimum supported runtime for both the session daemon and viewing client.** Evidence uses 0.9.10. The existing estate daemons observed on 0.9.8 are not qualified; changing a symlink does not update a running daemon. Confirm the actual running binary/client versions and obtain the normal maintenance approval before an update. This fork does not update or restart Tern.
 
-An example session (output from the plugin's own parser and list code):
+After exact-head cross-family review and owner-approved pilot, install the reviewed local package with Tern's ordinary plugin installer. Plugin ID remains `estate-session-list`; displayed name is **Interactive plan**. Install on the actual session host/client combination; do not run a deployed service/plugin from a group-writable development checkout. See [docs/RUNBOOK.md](docs/RUNBOOK.md).
 
-```
-$ session-list add --subject "CSV import" "Write the parser" "Add tests" "Update the docs"
-This tab's session list: CSV import
-☐ i1 Write the parser
-☐ i2 Add tests
-☐ i3 Update the docs
+## Verification
 
-$ session-list doing i1
-This tab's session list: CSV import
-▶ i1 Write the parser (in progress)
-☐ i2 Add tests
-☐ i3 Update the docs
-
-$ session-list done i1
-This tab's session list: CSV import
-☐ i2 Add tests
-☐ i3 Update the docs
-☑ i1 Write the parser (done)
-
-$ session-list block i3 "waiting for Ana's review"
-This tab's session list: CSV import
-☐ i2 Add tests
-⊘ i3 Update the docs (blocked: waiting for Ana's review)
-☑ i1 Write the parser (done)
-
-$ session-list check
-You stopped with 1 open item on this tab's session list: i2 Add tests. Continue with them, or tick what is finished (`session-list done <id>`), or mark what waits on someone (`session-list block <id> <reason>`).
+```sh
+python3 -m unittest discover -s tests -p estate_test.py
+python3 tests/estate_smoke.py --evidence /absolute/private/evidence.json
 ```
 
-## Settings
+The connected test uses a disposable Tern daemon, private Xvfb window and real loopback SSH server with generated temporary keys and strict host-key checking. It touches no live estate configuration or provider. Source and restored identity, local/SSH state changes, visible failures and independent views are checked. See [docs/VALIDATION.md](docs/VALIDATION.md) for observed results and unqualified platforms; loopback SSH is not proof of a remote Windows/macOS deployment.
 
-Settings live in the plugin's `kv.json`, in its data folder (on macOS `~/Library/Application Support/Tern/plugin-data/session-list/kv.json`).
-A key that is missing takes its default.
+Upstream model/test libraries remain as licensed reference. Its old live `tests/cli.sh`, `tests/cli.ps1` and `tests/dev-copy.sh` target a retired request protocol and must not be run for this fork.
 
-| Key | Default | What it does |
-|---|---|---|
-| `idioma` | `"en"` | Language of the panel and the answers: `"en"` or `"pt-BR"`. Also set by the palette command. |
-| `abrir_sozinho` | `true` | `false` stops the panel from opening by itself; "show for this tab" still opens it. |
-| `max_lembretes` | `1` | How many stop reminders a list gets before it changes again. |
+## Attribution
 
-## How it works
-
-- **One writer.** Only the plugin's host half (inside Tern's daemon) reads and writes the lists, one JSON file per list in `listas/` under the data folder.
-- **Request files.** The command never touches a list: it writes a request into `pedidos/` (as a `.tmp` file, then renamed), and the host answers into `respostas/`.
-  A request counts only when its last line is `end=1`, so a half-written one is left for the next pass.
-  The host deletes the request before applying it, so a request is never applied twice; a crash in between loses that one request, and the command says the plugin did not answer.
-- **Where the command finds the data folder.** `SESSION_LIST_DATA` (set by the plugin in every new Tern pane), else `$TERN_CONFIG_DIR/plugin-data/session-list`, else the OS default.
-- **Orphans.** When a tab closes, its list becomes an orphan if it still has parts not done, and is deleted if everything was done.
-  Closed tabs are found by checking, every second, which panes still exist.
-  An orphan is offered to the next tab: in the panel (Continue here / Discard) and, through the start hook, to the agent, which is told to ask you and never to adopt or discard on its own.
-  Adopting moves the list into this tab, or appends its open parts (with new ids) when this tab already has a list; a discarded list is moved to `descartadas/`, not deleted (move it back into `listas/` by hand to undo).
-- **Reminders.** `check` reminds of open and in-progress parts (blocked ones do not count).
-  It reminds at most `max_lembretes` times until the list changes, never when the agent's last reply ends with a question, and never on a turn the stop hook already continued (`stop_hook_active`), so it cannot loop.
-  For Tern agent blocks the plugin sends the reminder itself when the agent finishes and is idle.
-- **Torn writes.** Lists are written whole and synchronously; a crash in the middle of a write would leave an unreadable file, which is then shown as unreadable and never touched again.
-
-## Verified / Not verified
-
-Verified, on Tern 0.9.8 on macOS: the command and every verb against the real Tern daemon with a test copy of the plugin (orphans, adopt, discard, the reminder cap, `stop_hook_active`); the panel's look, keys and glow; and a real Claude Code run whose Stop hook held it once with the reminder and did not loop.
-
-Not verified:
-
-- **Windows.** The PowerShell command and the `.cmd` shim are written and pass the same test as the sh command under `pwsh` on macOS, but were never run on Windows.
-  Whether Tern sets `TERN_PANE` on Windows, and the default data folder there (`%APPDATA%\Tern\plugin-data\session-list`), are unverified.
-- **Linux.** The default data folder there is a guess; `SESSION_LIST_DATA` set by the plugin does not depend on it.
-- **Tern agent blocks.** The reminder for agent blocks loads without error but was not run with a real agent block.
-- **Codex.** The Codex hooks follow Codex's documentation and were not run.
-- **`tern restart`.** Not measured; lists and panels are expected to come back because the programs keep running.
-- **Quit or reboot.** If Tern recreates panes with reused ids before the plugin loads, a new tab could inherit a dead tab's list.
-
-## Removing it
-
-```
-tern plugin remove session-list
-rm ~/.local/bin/session-list
-```
-
-Your lists stay in the data folder until you delete it (on macOS `~/Library/Application Support/Tern/plugin-data/session-list/`).
-
-## Credits
-
-Made by Felipe Carneiro: GitHub [felipevdc1](https://github.com/felipevdc1) · Instagram [@o.felipecarneiro](https://instagram.com/o.felipecarneiro).
-
-MIT license.
+Original plugin/native-checklist approach: Felipe Carneiro (`felipevdc1/tern-session-list`), MIT, based on f5920de0cc1018fa9814e5f0c6cca83a7ddf34dc. Original LICENSE remains. English-first view, explicit checkpoint reader, local/SSH source path and workflow contract: CodexBWAI, MIT. This fork does not claim independent origin of the native checklist design. No private estate memory or credentials belong in this public repository.

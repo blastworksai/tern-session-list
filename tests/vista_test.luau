@@ -269,4 +269,12 @@ return {
 		eq(#acha(layer2, "sl-brilho-ring"), 1, "ring")
 		eq(#acha(r2, "sl-brilho"), 0, "main unchanged")
 	end },
+	-- COMMANDER-993: read-only projection must not advertise edit keys or claim completion.
+	{ "estate readonly pending card", function()
+		local r, dock = desenha({lista = lista({item("i1", "canonical", "aberto")}), readonly = true, source = "PLAN.md"})
+		eq(cartoes(r, "sl.lista")[1].p.status, "pending")
+		eq(dock, nil)
+		assert(string.find(spans(r), "PLAN.md", 1, true))
+	end },
+
 }
